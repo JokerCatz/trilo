@@ -3,7 +3,7 @@ ENV_FILE := .env
 COMPOSE := docker compose --env-file .env -f deploy/docker-compose.yml
 
 ifeq ($(wildcard $(ENV_FILE)),)
-$(error Missing .env. Copy .env.template to .env and edit it before running make)
+  $(error Missing .env. Copy .env.template to .env and edit it before running make)
 endif
 
 include $(ENV_FILE)

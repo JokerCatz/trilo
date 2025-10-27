@@ -5,7 +5,7 @@ services:
     container_name: ${TRILO_PREFIX:-trilo}_web
     image: nginx:alpine
     ports:
-      - "${TRILO_NGINX_HTTP_PORT:-80}:80"
+      - "${TRILO_NGINX_HTTP_PORT:-8080}:80"
     volumes:
       - ../${TRILO_PUBLIC_DIR:-public}:/usr/share/nginx/html:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
