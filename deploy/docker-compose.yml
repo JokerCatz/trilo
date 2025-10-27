@@ -15,15 +15,6 @@ services:
     depends_on:
       hugo:
         condition: service_healthy
-    read_only: true
-    tmpfs:
-      - /var/cache/nginx
-      - /var/run
-    security_opt:
-      - no-new-privileges:true
-    cap_drop: ["ALL"]
-    cap_add:
-      - CHOWN
     logging:
       driver: json-file
       options:
