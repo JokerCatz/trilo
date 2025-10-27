@@ -1,0 +1,24 @@
+# Environment
+.env
+
+# Tooling, OS/editor
+node_modules/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Hugo generated/runtime
+/public/*
+/workspace/*
+/resources/*
+
+!/public/.keep
+!/workspace/.keep
+!/resources/.keep
+
+# Hugo lock
+.hugo_build.lock
+
+# Logs
+*.log

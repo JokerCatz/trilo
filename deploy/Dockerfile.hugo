@@ -1,0 +1,6 @@
+FROM klakegg/hugo:ext-alpine
+RUN apk add --no-cache tzdata ca-certificates tini git-lfs && git lfs install
+COPY scripts/watch.sh /usr/local/bin/watch.sh
+RUN chmod +x /usr/local/bin/watch.sh
+ENTRYPOINT ["/sbin/tini","--"]
+CMD ["/usr/local/bin/watch.sh"]

@@ -1,0 +1,78 @@
+version: "3.9"
+name: ${TRILO_PREFIX:-trilo}
+
+services:
+  web:
+    container_name: ${TRILO_PREFIX:-trilo}_web
+    image: nginx:alpine
+    ports:
+      - "${TRILO_NGINX_HTTP_PORT:-80}:80"
+    volumes:
+      - ../${TRILO_PUBLIC_DIR:-public}:/usr/share/nginx/html:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    environment:
+      TZ: ${TRILO_TZ:-UTC}
+    depends_on:
+      hugo:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+    logging:
+      driver: json-file
+      options:
+        max-size: ${TRILO_LOG_MAX_SIZE:-10m}
+        max-file: ${TRILO_LOG_MAX_FILE:-3}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "${TRILO_WEB_LIMIT_CPUS:-0.50}"
+          memory: "${TRILO_WEB_LIMIT_MEMORY:-256M}"
+
+  hugo:
+    container_name: ${TRILO_PREFIX:-trilo}_hugo
+    build:
+      context: .
+      dockerfile: Dockerfile.hugo
+    image: ${TRILO_PREFIX:-trilo}-hugo:latest
+    user: "${TRILO_PUID:-1000}:${TRILO_PGID:-1000}"
+    environment:
+      TZ: ${TRILO_TZ:-UTC}
+      HOME: /workspace
+      GIT_REPO: ${TRILO_GIT_REPO}
+      GIT_BRANCH: ${TRILO_GIT_BRANCH:-main}
+      HUGO_SRC: ${TRILO_HUGO_SRC:-.}
+      BASE_URL: ${TRILO_BASE_URL:-http://localhost/}
+      INTERVAL: ${TRILO_INTERVAL:-300}
+      TRILO_HUGO_FLAGS: ${TRILO_HUGO_FLAGS:-}
+    volumes:
+      - ../${TRILO_WORKSPACE_DIR:-workspace}:/workspace
+      - ../${TRILO_PUBLIC_DIR:-public}:/public
+    command: ["/usr/local/bin/watch.sh"]
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+    logging:
+      driver: json-file
+      options:
+        max-size: ${TRILO_LOG_MAX_SIZE:-10m}
+        max-file: ${TRILO_LOG_MAX_FILE:-3}
+    healthcheck:
+      test: ["CMD", "sh", "-c", "[ -f /public/index.html ]"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "${TRILO_HUGO_LIMIT_CPUS:-1.00}"
+          memory: "${TRILO_HUGO_LIMIT_MEMORY:-512M}"
