@@ -53,7 +53,6 @@ write_minimal_config() {
     printf 'baseURL = "%s"\n' "${BASE_URL}" > "$SRC/config/_default/config.toml"
     printf 'title = "Trilo Site"\n' >> "$SRC/config/_default/config.toml"
     printf 'languageCode = "en-us"\n' >> "$SRC/config/_default/config.toml"
-    printf 'paginate = 10\n' >> "$SRC/config/_default/config.toml"
   fi
 }
 
