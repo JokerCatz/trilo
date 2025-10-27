@@ -39,17 +39,33 @@ content_exists() {
   find "$SRC/content" -type f -name '*.md' -print -quit 2>/dev/null | grep -q .
 }
 
-write_minimal_config_and_templates() {
-  mkdir -p "$SRC/layouts/_default" "$SRC/content/posts" "$SRC/config/_default"
-  if [ ! -f "$SRC/config/_default/config.toml" ] && [ ! -f "$SRC/config.toml" ] && [ ! -f "$SRC/hugo.toml" ]; then
+layouts_exist() {
+  find "$SRC/layouts" -type f -name '*.html' -print -quit 2>/dev/null | grep -q .
+}
+
+themes_exist() {
+  find "$SRC/themes" -mindepth 1 -type d -print -quit 2>/dev/null | grep -q .
+}
+
+write_minimal_config() {
+  mkdir -p "$SRC/config/_default"
+  if ! config_exists; then
     printf 'baseURL = "%s"\n' "${BASE_URL}" > "$SRC/config/_default/config.toml"
     printf 'title = "Trilo Site"\n' >> "$SRC/config/_default/config.toml"
     printf 'languageCode = "en-us"\n' >> "$SRC/config/_default/config.toml"
     printf 'paginate = 10\n' >> "$SRC/config/_default/config.toml"
   fi
+}
+
+write_minimal_templates() {
+  mkdir -p "$SRC/layouts/_default"
   [ -f "$SRC/layouts/_default/baseof.html" ] || printf '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ block "title" . }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title></head><body><main>{{ block "main" . }}{{ end }}</main></body></html>\n' > "$SRC/layouts/_default/baseof.html"
   [ -f "$SRC/layouts/_default/single.html" ] || printf '{{ define "title" }}{{ .Title }}{{ end }}\n{{ define "main" }}<article><h1>{{ .Title }}</h1><p class="post-meta">{{ .Date.Format "2006-01-02" }}</p>{{ .Content }}</article>{{ end }}\n' > "$SRC/layouts/_default/single.html"
   [ -f "$SRC/layouts/_default/list.html" ] || printf '{{ define "title" }}{{ .Title }}{{ end }}\n{{ define "main" }}<h1>{{ .Title }}</h1><ul class="list">{{ range .Pages.ByDate.Reverse }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a><div class="post-meta">{{ .Date.Format "2006-01-02" }}</div></li>{{ end }}</ul>{{ end }}\n' > "$SRC/layouts/_default/list.html"
+}
+
+ensure_welcome_post() {
+  mkdir -p "$SRC/content/posts"
   if [ ! -f "$SRC/content/posts/welcome.md" ]; then
     dt="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     printf '---\ntitle: "Welcome"\ndate: %s\ndraft: false\n---\n\nThis is a starter post.\n' "$dt" > "$SRC/content/posts/welcome.md"
@@ -62,9 +78,16 @@ build_site() {
 
 fetch_sync
 
-if ! config_exists && ! content_exists; then
-  write_minimal_config_and_templates
-  echo "[init] minimal config and templates created @ $(now)"
+if ! config_exists; then
+  write_minimal_config
+fi
+
+if ! content_exists; then
+  ensure_welcome_post
+fi
+
+if ! layouts_exist && ! themes_exist; then
+  write_minimal_templates
 fi
 
 build_site
