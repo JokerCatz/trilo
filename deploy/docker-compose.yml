@@ -43,7 +43,7 @@ services:
     user: "${TRILO_PUID:-1000}:${TRILO_PGID:-1000}"
     environment:
       TZ: ${TRILO_TZ:-UTC}
-      HOME: /workspace
+      HOME: /tmp
       GIT_REPO: ${TRILO_GIT_REPO}
       GIT_BRANCH: ${TRILO_GIT_BRANCH:-main}
       HUGO_SRC: ${TRILO_HUGO_SRC:-.}

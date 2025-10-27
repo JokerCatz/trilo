@@ -8,7 +8,6 @@ echo "[hugo] tz=${TZ:-UTC} branch=${GIT_BRANCH:-main} interval=${INTERVAL:-300}"
 echo "[hugo] repo=${GIT_REPO}"
 
 mkdir -p /workspace /public
-git config --global --add safe.directory /workspace || true
 
 fetch_safe() {
   n=0
