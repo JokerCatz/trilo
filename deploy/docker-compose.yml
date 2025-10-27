@@ -22,17 +22,14 @@ services:
     security_opt:
       - no-new-privileges:true
     cap_drop: ["ALL"]
+    cap_add:
+      - CHOWN
     logging:
       driver: json-file
       options:
         max-size: ${TRILO_LOG_MAX_SIZE:-10m}
         max-file: ${TRILO_LOG_MAX_FILE:-3}
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "${TRILO_WEB_LIMIT_CPUS:-0.50}"
-          memory: "${TRILO_WEB_LIMIT_MEMORY:-256M}"
 
   hugo:
     container_name: ${TRILO_PREFIX:-trilo}_hugo
