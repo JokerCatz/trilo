@@ -53,7 +53,7 @@ services:
     volumes:
       - ../${TRILO_WORKSPACE_DIR:-workspace}:/workspace
       - ../${TRILO_PUBLIC_DIR:-public}:/public
-    command: ["/usr/local/bin/watch.sh"]
+    command: ["/bin/sh","-lc","/usr/local/bin/init.sh && exec /usr/local/bin/watch.sh"]
     read_only: true
     tmpfs:
       - /tmp
