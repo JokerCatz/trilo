@@ -1,4 +1,4 @@
-FROM klakegg/hugo:ext-alpine
+FROM hugomods/hugo:exts
 RUN apk add --no-cache tzdata ca-certificates tini git-lfs && git lfs install
 COPY scripts/init.sh /usr/local/bin/init.sh
 COPY scripts/watch.sh /usr/local/bin/watch.sh

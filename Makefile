@@ -43,16 +43,16 @@ fix-perms:
 	docker run --rm -v $$PWD:/mnt busybox sh -c 'chown -R $(TRILO_PUID):$(TRILO_PGID) /mnt/$(TRILO_PUBLIC_DIR) /mnt/$(TRILO_WORKSPACE_DIR)'
 
 hugo:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace klakegg/hugo:ext-alpine hugo $(ARGS)
+	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo $(ARGS)
 
 hugo-new:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace klakegg/hugo:ext-alpine hugo new $(PATH)
+	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo new $(PATH)
 
 hugo-serve:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -p $(TRILO_DEV_PORT):1313 -v $$PWD:/workspace -w /workspace klakegg/hugo:ext-alpine hugo server -D --bind 0.0.0.0 -p 1313
+	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -p $(TRILO_DEV_PORT):1313 -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo server -D --bind 0.0.0.0 -p 1313
 
 build-local:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace klakegg/hugo:ext-alpine hugo --gc --minify $(TRILO_HUGO_FLAGS) -s $(TRILO_HUGO_SRC) -d $(TRILO_PUBLIC_DIR) --baseURL $(TRILO_BASE_URL) --cleanDestinationDir
+	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo --gc --minify $(TRILO_HUGO_FLAGS) -s $(TRILO_HUGO_SRC) -d $(TRILO_PUBLIC_DIR) --baseURL $(TRILO_BASE_URL) --cleanDestinationDir
 
 help:
 	@echo "Available targets:"
