@@ -12,6 +12,7 @@ Thumbs.db
 /public/*
 /workspace/*
 /resources/*
+/workspace/*
 
 !/public/.keep
 !/resources/.keep
