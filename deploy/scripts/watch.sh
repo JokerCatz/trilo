@@ -8,6 +8,8 @@ echo "[hugo] tz=${TZ:-UTC} branch=${GIT_BRANCH:-main} interval=${INTERVAL:-300}"
 echo "[hugo] repo=${GIT_REPO}"
 
 mkdir -p /workspace /public
+touch /workspace/.writecheck || { echo "[hugo] ERROR: cannot write to /workspace (fix ownership of host path)"; exit 1; }
+rm -f /workspace/.writecheck
 
 fetch_safe() {
   n=0
