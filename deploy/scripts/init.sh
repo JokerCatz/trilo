@@ -28,6 +28,37 @@ if find "$SRC" -mindepth 1 -not -path "$SRC/.git" -not -path "$SRC/.git/*" -prin
   non_git_any=1
 fi
 
+normalize_cfg() {
+  p="$1"
+  case "$p" in
+    *.toml)
+      sed -i -E '/^[[:space:]]*baseURL[[:space:]]*=/d' "$p"
+      sed -i -E '/^[[:space:]]*theme[[:space:]]*=/d' "$p"
+      printf '\nbaseURL = "%s"\n' "${BASE_URL}" >> "$p"
+      [ "${1:-}" ] >/dev/null 2>&1 ;; # no-op to keep case format
+    *.yaml|*.yml)
+      sed -i -E '/^[[:space:]]*baseURL[[:space:]]*:/d' "$p"
+      sed -i -E '/^[[:space:]]*theme[[:space:]]*:/d' "$p"
+      printf '\nbaseURL: "%s"\n' "${BASE_URL}" >> "$p"
+      ;;
+    *.json)
+      tmp="$(mktemp)"
+      theme_json='"theme": "ananke"'
+      printf '{ "baseURL": "%s", %s }\n' "${BASE_URL}" "${theme_json}" > "$tmp"
+      mv "$tmp" "$p"
+      ;;
+  esac
+}
+
+set_theme() {
+  p="$1"
+  case "$p" in
+    *.toml) printf 'theme = "ananke"\n' >> "$p" ;;
+    *.yaml|*.yml) printf 'theme: "ananke"\n' >> "$p" ;;
+    *.json) : ;; # already handled in normalize_cfg for json
+  esac
+}
+
 if [ -z "$cfg_path" ] || [ "$non_git_any" -eq 0 ]; then
   mkdir -p "$SRC"
   find "$SRC" -mindepth 1 -maxdepth 1 -not -name ".git" -exec rm -rf {} +
@@ -42,23 +73,8 @@ if [ -z "$cfg_path" ] || [ "$non_git_any" -eq 0 ]; then
     [ -f "$c" ] && cfg_path="$c" && break
   done
   if [ -n "$cfg_path" ]; then
-    case "$cfg_path" in
-      *.toml)
-        printf '\nbaseURL = "%s"\n' "${BASE_URL}" >> "$cfg_path"
-        [ "$theme_ok" -eq 1 ] && printf 'theme = "ananke"\n' >> "$cfg_path"
-        ;;
-      *.yaml|*.yml)
-        printf '\nbaseURL: "%s"\n' "${BASE_URL}" >> "$cfg_path"
-        [ "$theme_ok" -eq 1 ] && printf 'theme: "ananke"\n' >> "$cfg_path"
-        ;;
-      *.json)
-        if [ "$theme_ok" -eq 1 ]; then
-          printf '{ "baseURL": "%s", "theme": "ananke" }\n' "${BASE_URL}" > "$cfg_path"
-        else
-          printf '{ "baseURL": "%s" }\n' "${BASE_URL}" > "$cfg_path"
-        fi
-        ;;
-    esac
+    normalize_cfg "$cfg_path"
+    [ "$theme_ok" -eq 1 ] && set_theme "$cfg_path"
   fi
   mkdir -p "$SRC/content/posts"
   dt="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
