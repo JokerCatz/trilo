@@ -43,7 +43,10 @@ logs-hugo:
 	$(COMPOSE) logs -f hugo
 
 rebuild:
-	$(COMPOSE) kill -s HUP hugo
+	$(COMPOSE) exec -T hugo /bin/ash -lc 'touch /tmp/.force_rebuild'
+
+rebuild-hard:
+	$(COMPOSE) restart hugo
 
 build:
 	$(COMPOSE) build hugo
