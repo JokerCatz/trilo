@@ -143,14 +143,22 @@ make restart
 make ps
 ```
 
-Hugo targets:
+Hugo (containerized, no local install needed):
 
 ```bash
-make hugo-new PATH="content/posts/hello-world.md"
+make hugo help
+make hugo version
+make hugo list drafts
+make hugo-new content/posts/hello-world.md
 make hugo-serve
-make hugo ARGS="version"
 make build-local
 ```
+
+Notes:
+
+* `make hugo <args...>` forwards trailing args directly to `hugo` via `/bin/ash -lc`.
+* `make hugo-new <path>` forwards the target path to `hugo new`.
+* `make hugo-serve` runs a local preview server on `http://localhost:<TRILO_DEV_PORT>`.
 
 ---
 
@@ -302,10 +310,23 @@ Enable Discussions on your repo and configure Giscus at [https://giscus.app/](ht
 
 ### Troubleshooting
 
-* `.env` missing: `make` exits with an error; copy `.env.template` to `.env`.
-* Permissions: ensure `public/` and `workspace/` are owned by your UID/GID.
-* Blank site on first boot: wait for the `hugo` health check or run `make rebuild`.
-* Port conflicts: adjust `TRILO_NGINX_HTTP_PORT` or `TRILO_DEV_PORT` in `.env`.
+* Nginx not responding:
+
+  * Confirm the port in `.env` and that no other process binds it.
+  * Check logs: `make logs` and `make logs-hugo`.
+  * Ensure the simplified `web` service is in use (no `cap_drop`, no `tmpfs`).
+
+* Permission denied in `workspace/`:
+
+  * Run `make down && make fix-perms && make up`.
+
+* First boot blank:
+
+  * Wait for `hugo` health check or trigger `make rebuild`.
+
+* `make hugo help` prints build usage instead of help:
+
+  * The Makefile now forwards trailing args. Use `make hugo help` or `make hugo version`.
 
 ---
 

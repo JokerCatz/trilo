@@ -9,6 +9,21 @@ endif
 include $(ENV_FILE)
 export $(shell sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$$/d' -e 's/^\([^=[:space:]]\+\)=.*/\1/' $(ENV_FILE))
 
+# If first goal is "hugo", capture trailing words as HUGO_ARGS and
+# declare dummy rules so make won't try to build them as targets.
+ifeq ($(firstword $(MAKECMDGOALS)),hugo)
+  HUGO_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(HUGO_ARGS):;@:)
+endif
+
+# If first goal is "hugo-new", capture trailing words as HUGO_PATH.
+ifeq ($(firstword $(MAKECMDGOALS)),hugo-new)
+  HUGO_PATH := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(HUGO_PATH):;@:)
+endif
+
+HUGO_IMAGE := hugomods/hugo:exts
+
 .PHONY: preflight up down logs logs-hugo rebuild build restart ps fix-perms hugo hugo-new hugo-serve build-local help
 
 preflight:
@@ -43,16 +58,45 @@ fix-perms:
 	docker run --rm -v $$PWD:/mnt busybox sh -c 'chown -R $(TRILO_PUID):$(TRILO_PGID) /mnt/$(TRILO_PUBLIC_DIR) /mnt/$(TRILO_WORKSPACE_DIR)'
 
 hugo:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo $(ARGS)
+	docker run --rm \
+	  -u $(TRILO_PUID):$(TRILO_PGID) \
+	  -e TZ=$(TRILO_TZ) \
+	  -e HOME=/workspace \
+	  -v $$PWD:/workspace -w /workspace \
+	  $(HUGO_IMAGE) /bin/ash -lc 'hugo $(HUGO_ARGS)'
 
 hugo-new:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo new $(PATH)
+	docker run --rm \
+	  -u $(TRILO_PUID):$(TRILO_PGID) \
+	  -e TZ=$(TRILO_TZ) \
+	  -e HOME=/workspace \
+	  -v $$PWD:/workspace -w /workspace \
+	  $(HUGO_IMAGE) /bin/ash -lc 'hugo new $(if $(HUGO_PATH),$(HUGO_PATH),content/posts/untitled.md)'
 
 hugo-serve:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -p $(TRILO_DEV_PORT):1313 -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo server -D --bind 0.0.0.0 -p 1313
+	docker run --rm -it \
+	  -u $(TRILO_PUID):$(TRILO_PGID) \
+	  -e TZ=$(TRILO_TZ) \
+	  -e HOME=/workspace \
+	  -p $(TRILO_DEV_PORT):1313 \
+	  -v $$PWD:/workspace -w /workspace \
+	  $(HUGO_IMAGE) /bin/ash -lc 'hugo server -D --bind 0.0.0.0 -p 1313'
 
 build-local:
-	docker run --rm -it -u $(TRILO_PUID):$(TRILO_PGID) -e TZ=$(TRILO_TZ) -v $$PWD:/workspace -w /workspace hugomods/hugo:exts hugo --gc --minify $(TRILO_HUGO_FLAGS) -s $(TRILO_HUGO_SRC) -d $(TRILO_PUBLIC_DIR) --baseURL $(TRILO_BASE_URL) --cleanDestinationDir
+	docker run --rm \
+	  -u $(TRILO_PUID):$(TRILO_PGID) \
+	  -e TZ=$(TRILO_TZ) \
+	  -e HOME=/workspace \
+	  -v $$PWD:/workspace -w /workspace \
+	  $(HUGO_IMAGE) /bin/ash -lc 'hugo --gc --minify $(TRILO_HUGO_FLAGS) -s $(TRILO_HUGO_SRC) -d $(TRILO_PUBLIC_DIR) --baseURL $(TRILO_BASE_URL) --cleanDestinationDir'
+
+h:
+	docker run --rm \
+	  -u $(TRILO_PUID):$(TRILO_PGID) \
+	  -e TZ=$(TRILO_TZ) \
+	  -e HOME=/workspace \
+	  -v $$PWD:/workspace -w /workspace \
+	  $(HUGO_IMAGE) /bin/ash -lc '$(CMD)'
 
 help:
 	@echo "Available targets:"
