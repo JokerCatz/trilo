@@ -14,9 +14,6 @@ Thumbs.db
 /resources/*
 /workspace/*
 
-!/public/.keep
-!/resources/.keep
-
 # Hugo lock
 .hugo_build.lock
 
